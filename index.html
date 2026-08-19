@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stepper Prototype — DJP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── DJP INDEX tokens ──────────────────────────────── */
+    :root {
+      /* comp/button/solid/primary */
+      --comp-button-solid-primary-fill-base:   #1067F4;
+      --comp-button-solid-primary-fill-hover:  #0D55CE;
+      --comp-button-solid-primary-fill-active: #0B47AE;
+      --comp-button-solid-primary-content:     #ffffff;
+
+      /* content */
+      --content-base:    #1a1a1a;
+      --content-subtle:  #6F6F81;
+      --content-inverse: #ffffff;
+
+      /* surface */
+      --surface-background:          #F8F8F8;
+      --surface-foreground:          #ffffff;
+      --surface-border-neutral-low:  #E0E0E6;
+      --surface-neutral-low:         #F1F1F3;
+
+      /* primary low (tinted bg) */
+      --surface-primary-low: rgba(16, 103, 244, 0.08);
+      --surface-primary-12:  rgba(16, 103, 244, 0.12);
+
+      /* comp/button/outline+minimal/neutral — theme-neutral (same DJP & Factiva) */
+      --neutral-fill-hover:  rgba(105, 120, 135, 0.12);
+      --neutral-fill-active: rgba(105, 120, 135, 0.16);
+
+      /* radius */
+      --radius-small:  8px;
+      --radius-xsmall: 4px;
+
+      /* spacing */
+      --space-4:  4px;
+      --space-8:  8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-20: 20px;
+      --space-24: 24px;
+      --space-32: 32px;
+
+      --font: 'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--surface-background);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-32) var(--space-24);
+    }
+
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    /* ── Card shell ────────────────────────────────────── */
+    .card {
+      background: var(--surface-foreground);
+      border-radius: var(--radius-small);
+      width: 100%;
+      padding: var(--space-32);
+      box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.07);
+    }
+
+    /* ── Stepper ───────────────────────────────────────── */
+    .stepper {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    /* ── Step tab ──────────────────────────────────────── */
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+      flex: 1;
+      cursor: default;
+    }
+
+    .step.completed { cursor: pointer; }
+
+    /* ── Step Indicator (node 110:91742) — all 7 states ── */
+
+    /* Shared outer container: 28px, 3px padding, rounded-full */
+    .step-indicator {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: 14px;
+      padding: 4px;
+      transition: background .15s ease;
+    }
+
+    /* ── Shared inner circle — all states ───────────────── */
+    .step-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s ease;
+    }
+
+    /* ── INCOMPLETE ─────────────────────────────────────── */
+    .step.incomplete .step-indicator { background: transparent; }
+
+    .step.incomplete .step-circle {
+      background: transparent;
+      border: 1.5px solid var(--content-subtle);
+    }
+
+    .step.incomplete:hover .step-circle  { background: var(--neutral-fill-hover); }
+    .step.incomplete:active .step-circle { background: var(--neutral-fill-active); }
+
+    /* ── CURRENT ────────────────────────────────────────── */
+    .step.current .step-indicator { background: transparent; }
+
+    .step.current .step-circle {
+      background: var(--comp-button-solid-primary-fill-base);
+      border: none;
+    }
+
+    /* ── COMPLETED ──────────────────────────────────────── */
+    .step.completed .step-indicator {
+      padding: 4px;
+      background: transparent;
+    }
+
+    .step.completed .step-circle {
+      background: var(--comp-button-solid-primary-fill-base);
+      border: none;
+    }
+
+    /* Hover — tone shift only, no ring */
+    .step.completed:hover .step-circle {
+      background: var(--comp-button-solid-primary-fill-hover);
+    }
+
+    /* Active */
+    .step.completed:active .step-circle {
+      background: var(--comp-button-solid-primary-fill-active);
+    }
+
+    /* ── Numbers ────────────────────────────────────────── */
+    .step-num {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--content-subtle);
+    }
+
+    .step.current .step-num { color: var(--content-inverse); }
+
+    /* ── Checkmark icon (completed) — fills the 22px inner circle */
+    .icon-check { width: 100%; height: 100%; display: block; }
+
+    /* label */
+    .step-label {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+      text-align: center;
+      white-space: nowrap;
+      color: var(--content-subtle);
+      transition: color .2s;
+    }
+
+    .step.current .step-label,
+    .step.completed .step-label {
+      color: var(--content-base);
+    }
+
+    /* bottom indicator bar — always visible grey, blue for active states */
+    .step-bar {
+      width: 100%;
+      height: 2px;
+      background: var(--surface-border-neutral-low);
+      margin-top: var(--space-4);
+      border-radius: 999px;
+      transition: background .3s ease;
+    }
+
+    .step.current .step-bar,
+    .step.completed .step-bar {
+      background: var(--comp-button-solid-primary-fill-base);
+    }
+
+    /* ── Content area ──────────────────────────────────── */
+    .step-content {
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: var(--space-24);
+      padding: var(--space-24);
+      background: var(--surface-foreground);
+      border-radius: var(--radius-small);
+      border: 1px solid var(--surface-border-neutral-low);
+    }
+
+    .content-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .content-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--content-base);
+    }
+
+    .content-desc {
+      font-size: 12px;
+      color: var(--content-subtle);
+      line-height: 1.5;
+    }
+
+    .content-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--content-subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .field-mock {
+      height: 36px;
+      border-radius: var(--radius-xsmall);
+      border: 1px solid var(--surface-border-neutral-low);
+      background: var(--surface-foreground);
+    }
+
+    .field-mock-text {
+      height: 80px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: var(--space-12);
+    }
+
+    .field-row .field-group { flex: 1; }
+
+    /* ── Navigation ────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--surface-border-neutral-low);
+      margin-top: var(--space-24);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: var(--space-16);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-8);
+      height: 36px;
+      padding: 0 var(--space-16);
+      border: none;
+      border-radius: var(--radius-xsmall);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s, transform .1s;
+      outline: none;
+    }
+
+    .btn:hover   { opacity: .88; }
+    .btn:active  { transform: scale(.97); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface-border-neutral-low);
+      color: var(--content-base);
+    }
+
+    .btn-primary {
+      background: var(--comp-button-solid-primary-fill-base);
+      color: var(--comp-button-solid-primary-content);
+    }
+
+    .btn-primary:hover { background: var(--comp-button-solid-primary-fill-hover); opacity: 1; }
+
+    .btn-invisible { visibility: hidden; }
+
+    .step-counter {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--content-subtle);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Complete state ─────────────────────────────────── */
+    .complete-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-12);
+      padding: var(--space-32);
+      text-align: center;
+    }
+
+    .check-badge {
+      width: 52px;
+      height: 52px;
+      background: var(--comp-button-solid-primary-fill-base);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-4);
+    }
+
+    .complete-screen h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--content-base);
+    }
+
+    .complete-screen p {
+      font-size: 13px;
+      color: var(--content-subtle);
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    /* ── Controls row — left-aligned above the card ────── */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
+      margin-bottom: var(--space-12);
+    }
+
+    /* ── Version toggle ──────────────────────────────── */
+    .version-toggle {
+      display: flex;
+      gap: var(--space-4);
+    }
+
+    /* ── Hide last step checkbox ─────────────────────── */
+    .hide-step-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--content-subtle);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .hide-step-toggle input[type="checkbox"] {
+      accent-color: var(--comp-button-solid-primary-fill-base);
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+    }
+
+    .hide-step-toggle.v-connector-only { opacity: .35; pointer-events: none; }
+
+    /* Hidden last step — keeps its space, bar stays visible */
+    .step.step-hidden .step-indicator,
+    .step.step-hidden .step-label { visibility: hidden; }
+
+    .vtoggle-btn {
+      height: 24px;
+      padding: 0 var(--space-8);
+      border: 1px solid transparent;
+      border-radius: var(--radius-xsmall);
+      background: transparent;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--content-subtle);
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+
+    .vtoggle-btn:hover { color: var(--content-base); }
+
+    .vtoggle-btn.active {
+      border-color: var(--surface-border-neutral-low);
+      color: var(--comp-button-solid-primary-fill-base);
+    }
+
+    /* ── Connector version (v2) ────────────────────────── */
+    .stepper.v-connector .step {
+      flex: none;
+    }
+
+    .stepper.v-connector .step-bar { display: none; }
+
+    .step-connector {
+      flex: 1;
+      height: 1.5px;
+      background: var(--surface-border-neutral-low);
+      align-self: flex-start;
+      margin-top: 13.25px; /* vertical center of 28px indicator */
+      transition: background .3s ease;
+    }
+
+    .step-connector.done {
+      background: var(--comp-button-solid-primary-fill-base);
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Controls — left-aligned above the card -->
+  <div class="controls-row">
+    <div class="version-toggle">
+      <button class="vtoggle-btn active" id="btn-v1" onclick="setVersion('underline')">Underline</button>
+      <button class="vtoggle-btn"        id="btn-v2" onclick="setVersion('connector')">Connector</button>
+    </div>
+    <label class="hide-step-toggle" id="hide-step-wrap">
+      <input type="checkbox" id="chk-hide-last" onchange="toggleLastStep(this.checked)" />
+      <span>Hide last step</span>
+    </label>
+  </div>
+
+  <div class="card" id="card">
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper"></div>
+
+  <!-- Step content -->
+  <div class="step-content" id="step-content"></div>
+
+  <!-- Nav -->
+  <div class="divider"></div>
+  <div class="nav" id="nav">
+    <button class="btn btn-secondary" id="btn-back" onclick="goBack()">← Back</button>
+    <button class="btn btn-primary"   id="btn-next" onclick="goNext()">Next →</button>
+  </div>
+
+
+</div><!-- /.card -->
+
+</div><!-- /.page-wrapper -->
+
+<script>
+  const STEPS = [
+    {
+      label: 'Details',
+      title: 'Basic Information',
+      desc:  'Provide the primary details for this item. All fields marked are required to proceed.',
+      fields: [
+        { type: 'row', items: [{ label: 'First Name' }, { label: 'Last Name' }] },
+        { type: 'single', label: 'Email Address' },
+        { type: 'single', label: 'Company' },
+      ]
+    },
+    {
+      label: 'Preferences',
+      title: 'Set Your Preferences',
+      desc:  'Configure how you would like the system to behave for this account.',
+      fields: [
+        { type: 'single', label: 'Default Language' },
+        { type: 'single', label: 'Time Zone' },
+        { type: 'single', label: 'Notification Frequency' },
+        { type: 'text',   label: 'Notes' },
+      ]
+    },
+    {
+      label: 'Access',
+      title: 'Access & Permissions',
+      desc:  'Define the access level and assign any relevant permissions to this profile.',
+      fields: [
+        { type: 'single', label: 'Role' },
+        { type: 'single', label: 'Department' },
+        { type: 'text',   label: 'Reason for Access' },
+      ]
+    },
+    {
+      label: 'Review',
+      title: 'Review & Confirm',
+      desc:  'Review all information before submitting. Once submitted, you will receive a confirmation.',
+      fields: [
+        { type: 'single', label: 'Summary Reference ID' },
+        { type: 'text',   label: 'Additional Comments' },
+      ]
+    },
+  ];
+
+  let current = 0;
+  let version = 'underline';
+  let hideLastStep = false;
+
+  function getStatus(i) {
+    return i < current ? 'completed' : i === current ? 'current' : 'incomplete';
+  }
+
+  function indicatorInner(i) {
+    // Completed — 22px blue inner circle + white checkmark polygon (node 110:91735)
+    if (i < current) {
+      return `<div class="step-circle">
+        <svg class="icon-check" viewBox="0 0 22.75 22.75" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill="white" d="M16.3691 9.36906L10.2441 15.4941C10.1628 15.5754 10.0663 15.64 9.96008 15.684C9.85385 15.728 9.73999 15.7507 9.62501 15.7507C9.51002 15.7507 9.39616 15.728 9.28993 15.684C9.18371 15.64 9.08721 15.5754 9.00594 15.4941L6.38094 12.8691C6.21676 12.7049 6.12452 12.4822 6.12452 12.25C6.12452 12.0178 6.21676 11.7951 6.38094 11.6309C6.54513 11.4668 6.76781 11.3745 7.00001 11.3745C7.2322 11.3745 7.45488 11.4668 7.61907 11.6309L9.62501 13.638L15.1309 8.13094C15.2122 8.04964 15.3088 7.98515 15.415 7.94116C15.5212 7.89716 15.635 7.87451 15.75 7.87451C15.865 7.87451 15.9788 7.89716 16.085 7.94116C16.1913 7.98515 16.2878 8.04964 16.3691 8.13094C16.4504 8.21223 16.5149 8.30875 16.5588 8.41497C16.6028 8.52118 16.6255 8.63503 16.6255 8.75C16.6255 8.86497 16.6028 8.97882 16.5588 9.08503C16.5149 9.19125 16.4504 9.28777 16.3691 9.36906Z"/>
+        </svg>
+      </div>`;
+    }
+    // Current — 28px halo + 22px primary inner circle + white number (Base, Status=Current)
+    if (i === current) {
+      return `<div class="step-circle"><span class="step-num">${i + 1}</span></div>`;
+    }
+    // Incomplete — 28px transparent + 22px gray-border circle + gray number (Base, Status=Incomplete)
+    return `<div class="step-circle"><span class="step-num">${i + 1}</span></div>`;
+  }
+
+  function buildStepper() {
+    const el = document.getElementById('stepper');
+    el.className = 'stepper' + (version === 'connector' ? ' v-connector' : '');
+    el.innerHTML = '';
+
+    const lastVisible = (hideLastStep && version === 'underline') ? STEPS.length - 2 : STEPS.length - 1;
+
+    // Clamp current to visible range
+    if (current > lastVisible) current = lastVisible;
+
+    STEPS.forEach((s, i) => {
+      const div = document.createElement('div');
+      const isHidden = hideLastStep && version === 'underline' && i === STEPS.length - 1;
+      div.className = 'step ' + getStatus(i) + (isHidden ? ' step-hidden' : '');
+      div.title = i < current ? `Go back to ${s.label}` : '';
+
+      if (version === 'underline') {
+        div.innerHTML = `
+          <div class="step-indicator">${indicatorInner(i)}</div>
+          <div class="step-label">${s.label}</div>
+          <div class="step-bar"></div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="step-indicator">${indicatorInner(i)}</div>
+          <div class="step-label">${s.label}</div>
+        `;
+      }
+
+      if (i < current) div.addEventListener('click', () => { current = i; update(); });
+      el.appendChild(div);
+
+      if (version === 'connector' && i < STEPS.length - 1) {
+        const conn = document.createElement('div');
+        conn.className = 'step-connector' + (i < current ? ' done' : '');
+        el.appendChild(conn);
+      }
+    });
+  }
+
+  function setVersion(v) {
+    version = v;
+    document.getElementById('btn-v1').classList.toggle('active', v === 'underline');
+    document.getElementById('btn-v2').classList.toggle('active', v === 'connector');
+    document.getElementById('hide-step-wrap').classList.toggle('v-connector-only', v === 'connector');
+    buildStepper();
+    update();
+  }
+
+  function toggleLastStep(checked) {
+    hideLastStep = checked;
+    buildStepper();
+    update();
+  }
+
+  function buildContent() {
+    const s = STEPS[current];
+    document.getElementById('step-content').innerHTML = `
+      <p style="font-size:13px;color:var(--content-subtle);">Here goes the content for ${s.label}</p>
+    `;
+  }
+
+  function update() {
+    buildStepper();
+    buildContent();
+
+    const back = document.getElementById('btn-back');
+    back.classList.toggle('btn-invisible', current === 0);
+
+    const lastVisible = (hideLastStep && version === 'underline') ? STEPS.length - 2 : STEPS.length - 1;
+    const next = document.getElementById('btn-next');
+    if (current === lastVisible) {
+      next.textContent = 'Submit ✓';
+      next.onclick = complete;
+    } else {
+      next.textContent = 'Next →';
+      next.onclick = goNext;
+    }
+  }
+
+  function goNext() {
+    const lastVisible = (hideLastStep && version === 'underline') ? STEPS.length - 2 : STEPS.length - 1;
+    if (current < lastVisible) { current++; update(); }
+  }
+  function goBack() { if (current > 0) { current--; update(); } }
+
+  function complete() {
+    document.getElementById('card').innerHTML = `
+      <div class="complete-screen">
+        <div class="check-badge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2>Submission Complete</h2>
+        <p>All information has been saved successfully. You can close this window or start over.</p>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="restart()">Start over</button>
+      </div>
+    `;
+  }
+
+  function restart() {
+    current = 0;
+    document.getElementById('card').innerHTML = `
+      <div class="stepper" id="stepper"></div>
+      <div class="step-content" id="step-content"></div>
+      <div class="divider"></div>
+      <div class="nav" id="nav">
+        <button class="btn btn-secondary" id="btn-back" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" id="btn-next" onclick="goNext()">Next →</button>
+      </div>
+    `;
+    update();
+  }
+
+  update();
+</script>
+</body>
+</html>
