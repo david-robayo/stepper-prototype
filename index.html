@@ -423,27 +423,23 @@
       align-items: center;
       justify-content: flex-start;
       gap: var(--space-8);
-      padding: var(--space-8) var(--space-12) var(--space-8) 0;
+      padding: 0 var(--space-12);
+      height: 32px;
       position: relative;
       cursor: default;
     }
 
-    /* First step has no left padding */
-    .stepper.v-tabs .step:first-child { padding-left: 0; }
-
-    /* Blue active underline — 2px, sits on top of the 2px grey border */
+    /* Blue active underline — 2px, overlaps the 2px grey border */
     .stepper.v-tabs .step.current::after {
       content: '';
       position: absolute;
       bottom: -2px;
       left: 0;
-      right: var(--space-12);
+      right: 0;
       height: 2px;
       background: var(--comp-button-solid-primary-fill-base);
       border-radius: 1px;
     }
-
-    .stepper.v-tabs .step:first-child.current::after { left: 0; }
 
     /* Completed tab: pointer + hover */
     .stepper.v-tabs .step.completed { cursor: pointer; }
@@ -652,10 +648,6 @@
           <div class="step-indicator">${indicatorInner(i)}</div>
           <div class="step-label">${s.label}</div>
         `;
-      }
-
-      if (version === 'tabs' && i < STEPS.length - 1) {
-        div.style.marginRight = 'var(--space-4)';
       }
 
       if (i < current) div.addEventListener('click', () => { current = i; update(); });
