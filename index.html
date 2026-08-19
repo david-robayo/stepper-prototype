@@ -457,27 +457,17 @@
 
     .stepper.v-tabs .step-bar { display: none; }
 
-    /* Icon size matches Figma Leading Icon: 16×16, no outer wrapper padding */
+    /* Tabs indicator: 20px circle, no outer wrapper padding */
     .stepper.v-tabs .step-indicator {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       padding: 0;
       border-radius: 50%;
     }
     .stepper.v-tabs .step-circle {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
     }
-    .stepper.v-tabs .step-num {
-      font-size: 10px;
-    }
-
-    /* Current step: outlined dark circle (matches NumberCircle icon style) */
-    .stepper.v-tabs .step.current .step-circle {
-      background: transparent;
-      border: 1.5px solid var(--content-base);
-    }
-    .stepper.v-tabs .step.current .step-num { color: var(--content-base); }
 
     /* Completed: blue CheckCircle (same as underline/connector) — hover shifts tone */
     .stepper.v-tabs .step.completed:hover .step-circle {
