@@ -456,7 +456,22 @@
 
     .stepper.v-tabs .step-bar { display: none; }
 
-    /* Current step: outlined dark circle (not blue filled — matches NumberCircle icon style) */
+    /* Icon size matches Figma Leading Icon: 16×16, no outer wrapper padding */
+    .stepper.v-tabs .step-indicator {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border-radius: 50%;
+    }
+    .stepper.v-tabs .step-circle {
+      width: 16px;
+      height: 16px;
+    }
+    .stepper.v-tabs .step-num {
+      font-size: 10px;
+    }
+
+    /* Current step: outlined dark circle (matches NumberCircle icon style) */
     .stepper.v-tabs .step.current .step-circle {
       background: transparent;
       border: 1.5px solid var(--content-base);
