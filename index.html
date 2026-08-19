@@ -460,31 +460,19 @@
 
     .stepper.v-tabs .step-bar { display: none; }
 
-    /* Tabs: all indicators are outlined circles (no blue fill, no checkmark) */
-    .stepper.v-tabs .step-circle {
-      background: transparent !important;
-    }
-
-    /* Current: dark border + dark number */
+    /* Current step: outlined dark circle (not blue filled — matches NumberCircle icon style) */
     .stepper.v-tabs .step.current .step-circle {
+      background: transparent;
       border: 1.5px solid var(--content-base);
     }
     .stepper.v-tabs .step.current .step-num { color: var(--content-base); }
 
-    /* Completed: subtle border + subtle number */
-    .stepper.v-tabs .step.completed .step-circle {
-      border: 1.5px solid var(--content-subtle);
-    }
-    .stepper.v-tabs .step.completed .step-num { color: var(--content-subtle); }
-
-    /* Incomplete: already styled via global .step.incomplete .step-circle */
-
-    /* Hover tint on completed tabs */
+    /* Completed: blue CheckCircle (same as underline/connector) — hover shifts tone */
     .stepper.v-tabs .step.completed:hover .step-circle {
-      background: var(--neutral-fill-hover) !important;
+      background: var(--comp-button-solid-primary-fill-hover);
     }
     .stepper.v-tabs .step.completed:active .step-circle {
-      background: var(--neutral-fill-active) !important;
+      background: var(--comp-button-solid-primary-fill-active);
     }
 
     .vtoggle-btn {
@@ -619,11 +607,6 @@
   }
 
   function indicatorInner(i) {
-    // Tabs version: all steps use outlined number circle (no blue fill, no checkmark)
-    if (version === 'tabs') {
-      return `<div class="step-circle"><span class="step-num">${i + 1}</span></div>`;
-    }
-
     // Completed — blue inner circle + white checkmark polygon (node 110:91735)
     if (i < current) {
       return `<div class="step-circle">
