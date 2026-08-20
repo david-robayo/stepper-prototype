@@ -491,6 +491,94 @@
       border: none;
     }
 
+    /* ── Version 5: Tabs 2 ──────────────────────────────── */
+    .stepper.v-tabs2 {
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 0;
+      border-bottom: 2px solid var(--surface-border-neutral-low);
+      position: relative;
+    }
+
+    .stepper.v-tabs2 .step {
+      flex: none;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-8);
+      padding: 0 var(--space-12);
+      height: 32px;
+      position: relative;
+      cursor: default;
+    }
+
+    .stepper.v-tabs2 .step.current::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--comp-button-solid-primary-fill-base);
+      border-radius: 1px;
+    }
+
+    .stepper.v-tabs2 .step.completed,
+    .stepper.v-tabs2 .step.was-completed { cursor: pointer; }
+
+    .stepper.v-tabs2 .step.completed:hover,
+    .stepper.v-tabs2 .step.was-completed:hover {
+      background: var(--surface-neutral-low);
+      border-radius: var(--radius-xsmall);
+    }
+
+    .stepper.v-tabs2 .step.current     .step-label { font-weight: 600; color: var(--content-base); }
+    .stepper.v-tabs2 .step.completed   .step-label { font-weight: 600; color: var(--content-base); }
+    .stepper.v-tabs2 .step.was-completed .step-label { font-weight: 600; color: var(--content-subtle); }
+    .stepper.v-tabs2 .step.incomplete  .step-label { font-weight: 600; color: var(--content-subtle); }
+
+    .stepper.v-tabs2 .step-bar { display: none; }
+
+    .stepper.v-tabs2 .step-indicator {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border-radius: 50%;
+    }
+    .stepper.v-tabs2 .step-circle {
+      width: 20px;
+      height: 20px;
+      border: none;
+      background: transparent;
+    }
+
+    /* Incomplete: dashed circle, no fill */
+    .stepper.v-tabs2 .step.incomplete .step-circle {
+      border: 1.5px dashed var(--surface-border-neutral-low);
+    }
+
+    /* Current: CircleHalf SVG, uses currentColor = primary blue */
+    .stepper.v-tabs2 .step.current .step-circle {
+      color: var(--comp-button-solid-primary-fill-base);
+      overflow: visible;
+    }
+
+    /* Was-completed: grey fill */
+    .stepper.v-tabs2 .step.was-completed .step-circle {
+      background: var(--content-subtle);
+    }
+
+    /* Completed hover/active */
+    .stepper.v-tabs2 .step.completed:hover .step-circle {
+      background: var(--comp-button-solid-primary-fill-hover);
+    }
+    .stepper.v-tabs2 .step.completed:active .step-circle {
+      background: var(--comp-button-solid-primary-fill-active);
+    }
+
+    /* CircleHalf SVG fills its container */
+    .icon-half { width: 100%; height: 100%; display: block; }
+
     /* ── Version 4: Inline (Tabs without underline) ──────── */
     .stepper.v-inline {
       align-items: stretch;
@@ -603,6 +691,7 @@
       <button class="vtoggle-btn"        id="btn-v2" onclick="setVersion('connector')">Connector</button>
       <button class="vtoggle-btn"        id="btn-v3" onclick="setVersion('tabs')">Tabs</button>
       <button class="vtoggle-btn"        id="btn-v4" onclick="setVersion('inline')">Inline</button>
+      <button class="vtoggle-btn"        id="btn-v5" onclick="setVersion('tabs2')">Tabs 2</button>
     </div>
     <label class="hide-step-toggle" id="hide-step-wrap">
       <input type="checkbox" id="chk-hide-last" onchange="toggleLastStep(this.checked)" />
@@ -682,13 +771,15 @@
   function getStatus(i) {
     if (i < current) return 'completed';
     if (i === current) return 'current';
-    if ((version === 'tabs' || version === 'inline') && i <= maxReached) return 'was-completed';
+    if ((version === 'tabs' || version === 'inline' || version === 'tabs2') && i <= maxReached) return 'was-completed';
     return 'incomplete';
   }
 
   function indicatorInner(i) {
     // Show checkmark for completed (i < current) AND was-completed (tabs: future step previously visited)
-    const showCheck = i < current || ((version === 'tabs' || version === 'inline') && i > current && i <= maxReached);
+    const isTabs2 = version === 'tabs2';
+    const showCheck = i < current || ((version === 'tabs' || version === 'inline' || isTabs2) && i > current && i <= maxReached);
+
     if (showCheck) {
       return `<div class="step-circle">
         <svg class="icon-check" viewBox="0 0 22.75 22.75" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -696,6 +787,22 @@
         </svg>
       </div>`;
     }
+
+    // Tabs 2 — current: CircleHalf SVG (left half filled)
+    if (isTabs2 && i === current) {
+      return `<div class="step-circle">
+        <svg class="icon-half" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 1A9 9 0 0 0 10 19Z" fill="currentColor"/>
+        </svg>
+      </div>`;
+    }
+
+    // Tabs 2 — incomplete: empty dashed circle (CSS handles the border, no number)
+    if (isTabs2) {
+      return `<div class="step-circle"></div>`;
+    }
+
     // Current — primary blue inner circle + white number
     if (i === current) {
       return `<div class="step-circle"><span class="step-num">${i + 1}</span></div>`;
@@ -709,7 +816,8 @@
     el.className = 'stepper'
       + (version === 'connector' ? ' v-connector' : '')
       + (version === 'tabs'      ? ' v-tabs'      : '')
-      + (version === 'inline'    ? ' v-inline'    : '');
+      + (version === 'inline'    ? ' v-inline'    : '')
+      + (version === 'tabs2'     ? ' v-tabs2'     : '');
     el.innerHTML = '';
 
     const lastVisible = (hideLastStep && version === 'underline') ? STEPS.length - 2 : STEPS.length - 1;
@@ -736,7 +844,7 @@
         `;
       }
 
-      if (i < current || ((version === 'tabs' || version === 'inline') && i <= maxReached)) {
+      if (i < current || ((version === 'tabs' || version === 'inline' || version === 'tabs2') && i <= maxReached)) {
         div.addEventListener('click', () => { current = i; update(); });
       }
       el.appendChild(div);
@@ -755,6 +863,7 @@
     document.getElementById('btn-v2').classList.toggle('active', v === 'connector');
     document.getElementById('btn-v3').classList.toggle('active', v === 'tabs');
     document.getElementById('btn-v4').classList.toggle('active', v === 'inline');
+    document.getElementById('btn-v5').classList.toggle('active', v === 'tabs2');
     const hideStepAvailable = v === 'underline';
     document.getElementById('hide-step-wrap').classList.toggle('v-connector-only', !hideStepAvailable);
     buildStepper();
