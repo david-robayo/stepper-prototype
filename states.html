@@ -164,9 +164,8 @@
       transition: width 0.35s ease;
     }
 
-    /* ── Hidden step: content invisible, space preserved ── */
+    /* ── Hidden step: content invisible, space and bottom line preserved ── */
     .step[data-hidden="true"] .step-content  { visibility: hidden; }
-    .step[data-hidden="true"] .step-indicator { visibility: hidden; }
 
     /* ── State: default (Next Step, not visited) ── */
     .step[data-state="default"] .step-label     { color: var(--content-subtle); }
