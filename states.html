@@ -259,7 +259,7 @@
       Back
     </button>
     <span class="state-info" id="state-info"></span>
-    <button class="btn btn-primary" id="btn-next" onclick="goNext()">
+    <button class="btn btn-primary" id="btn-next" onclick="handleNext()">
       Next
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -330,6 +330,14 @@
     const btn = document.getElementById('hide-btn');
     btn.textContent = hiddenSteps.has(i) ? 'Show step 4' : 'Hide step 4';
     render();
+  }
+
+  /* Single dispatcher — button always calls this; no dynamic onclick swap */
+  function handleNext() {
+    if (submitted) { restart(); return; }
+    let lastVis = LABELS.length - 1;
+    while (lastVis >= 0 && hiddenSteps.has(lastVis)) lastVis--;
+    if (currentStep === lastVis) { submit(); } else { goNext(); }
   }
 
   function submit() {
@@ -439,21 +447,18 @@
     backBtn.disabled = submitted || currentStep < 0;
 
     if (submitted) {
-      nextBtn.disabled   = false;
-      nextBtn.className  = 'btn btn-ghost';
-      nextBtn.innerHTML  = 'Restart';
-      nextBtn.onclick    = restart;
+      nextBtn.disabled  = false;
+      nextBtn.className = 'btn btn-ghost';
+      nextBtn.innerHTML = 'Restart';
     } else if (atLastVisible) {
-      nextBtn.disabled   = false;
-      nextBtn.className  = 'btn btn-primary';
-      nextBtn.innerHTML  = `Submit ${CHECK}`;
-      nextBtn.onclick    = submit;
+      nextBtn.disabled  = false;
+      nextBtn.className = 'btn btn-primary';
+      nextBtn.innerHTML = `Submit ${CHECK}`;
     } else {
-      const nextIndex    = currentStep + 1;
-      nextBtn.disabled   = nextIndex >= LABELS.length || hiddenSteps.has(nextIndex);
-      nextBtn.className  = 'btn btn-primary';
-      nextBtn.innerHTML  = `Next ${ARROW_RIGHT}`;
-      nextBtn.onclick    = goNext;
+      const nextIndex   = currentStep + 1;
+      nextBtn.disabled  = nextIndex >= LABELS.length || hiddenSteps.has(nextIndex);
+      nextBtn.className = 'btn btn-primary';
+      nextBtn.innerHTML = `Next ${ARROW_RIGHT}`;
     }
   }
 
