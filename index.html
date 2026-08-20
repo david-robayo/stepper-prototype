@@ -569,7 +569,10 @@
       background: var(--content-subtle);
     }
 
-    /* Completed: blue checkmark circle */
+    /* Completed: blue checkmark circle (explicit override — same specificity as base transparent rule) */
+    .stepper.v-tabs2 .step.completed .step-circle {
+      background: var(--comp-button-solid-primary-fill-base);
+    }
     .stepper.v-tabs2 .step.completed:hover .step-circle {
       background: var(--comp-button-solid-primary-fill-hover);
     }
