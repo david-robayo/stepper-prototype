@@ -347,15 +347,19 @@
 
     if (version === 2) {
       /* V2: single growing progress line
-         The track is full-width (breaks out of 32px padding).
-         The fill starts at 32px (left edge of steps) and
-         grows by (stepWidth%) of the steps area = pct * calc(100% - 64px).
-         Expressed as: left=32px, width=calc(pct% * (100% - 64px) / 100 + ... )
-         Simpler: use left=32px, right=calc((1-ratio)*(100%-64px) + 32px) */
+         Track is full card-width (breaks out of 32px padding).
+         Fill starts at left:32px (steps left edge).
+         When at the last *visible* step, stretch to the right card edge.
+         Otherwise grow proportionally through the steps area. */
       const ratio = Math.max(0, (currentStep + 1) / LABELS.length);
+      let lastVisible = LABELS.length - 1;
+      while (lastVisible >= 0 && hiddenSteps.has(lastVisible)) lastVisible--;
+      const atLastVisible = currentStep >= 0 && currentStep === lastVisible;
       const fillStyle = ratio === 0
         ? 'left:32px;width:0'
-        : `left:32px;width:calc(${ratio * 100}% - ${ratio * 64}px)`;
+        : atLastVisible
+          ? 'left:32px;width:calc(100% - 32px)'
+          : `left:32px;width:calc(${ratio * 100}% - ${ratio * 64}px)`;
       el.className = 'stepper v2';
       el.innerHTML =
         `<div class="stepper-row">` +
