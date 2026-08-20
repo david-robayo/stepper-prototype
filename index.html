@@ -923,7 +923,9 @@
   function goBack() { if (current > 0) { current--; update(); } }
 
   function complete() {
-    document.getElementById('card').innerHTML = `
+    const card = document.getElementById('card');
+    card.style.minHeight = card.offsetHeight + 'px';
+    card.innerHTML = `
       <div class="complete-screen">
         <div class="check-badge">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -940,7 +942,9 @@
   function restart() {
     current = 0;
     maxReached = 0;
-    document.getElementById('card').innerHTML = `
+    const card = document.getElementById('card');
+    card.style.minHeight = '';
+    card.innerHTML = `
       <div class="stepper" id="stepper"></div>
       <div class="step-content" id="step-content"></div>
       <div class="divider"></div>
