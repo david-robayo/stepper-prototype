@@ -148,7 +148,8 @@
     }
 
     .progress-track {
-      width: 100%;
+      width: calc(100% + 64px); /* break out of the 32px side padding */
+      margin-left: -32px;
       height: 2px;
       background: var(--border);
       position: relative;
@@ -161,7 +162,7 @@
       top: 0;
       height: 100%;
       background: var(--blue);
-      transition: width 0.35s ease;
+      transition: width 0.35s ease, left 0.35s ease;
     }
 
     /* ── Hidden step: content invisible, space and bottom line preserved ── */
@@ -345,8 +346,16 @@
     const el = document.getElementById('stepper');
 
     if (version === 2) {
-      /* V2: single growing progress line */
-      const pct = Math.max(0, (currentStep + 1) / LABELS.length * 100);
+      /* V2: single growing progress line
+         The track is full-width (breaks out of 32px padding).
+         The fill starts at 32px (left edge of steps) and
+         grows by (stepWidth%) of the steps area = pct * calc(100% - 64px).
+         Expressed as: left=32px, width=calc(pct% * (100% - 64px) / 100 + ... )
+         Simpler: use left=32px, right=calc((1-ratio)*(100%-64px) + 32px) */
+      const ratio = Math.max(0, (currentStep + 1) / LABELS.length);
+      const fillStyle = ratio === 0
+        ? 'left:32px;width:0'
+        : `left:32px;width:calc(${ratio * 100}% - ${ratio * 64}px)`;
       el.className = 'stepper v2';
       el.innerHTML =
         `<div class="stepper-row">` +
@@ -367,7 +376,7 @@
         }).join('') +
         `</div>
         <div class="progress-track">
-          <div class="progress-fill" style="width:${pct}%"></div>
+          <div class="progress-fill" style="${fillStyle}"></div>
         </div>`;
     } else {
       /* V1: individual per-step indicators */
