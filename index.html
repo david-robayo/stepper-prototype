@@ -569,15 +569,12 @@
       background: var(--content-subtle);
     }
 
-    /* Completed: dark checkmark circle (not blue) */
-    .stepper.v-tabs2 .step.completed .step-circle {
-      background: var(--content-base);
-    }
+    /* Completed: blue checkmark circle + tone shift on hover/active */
     .stepper.v-tabs2 .step.completed:hover .step-circle {
-      background: #3a3a3a;
+      background: var(--comp-button-solid-primary-fill-hover);
     }
     .stepper.v-tabs2 .step.completed:active .step-circle {
-      background: var(--content-base);
+      background: var(--comp-button-solid-primary-fill-active);
     }
 
     /* CircleHalf SVG fills its container */
