@@ -512,7 +512,8 @@
       cursor: default;
     }
 
-    .stepper.v-tabs2 .step.current::after {
+    .stepper.v-tabs2 .step.current::after,
+    .stepper.v-tabs2 .step.completed::after {
       content: '';
       position: absolute;
       bottom: -2px;
@@ -568,12 +569,15 @@
       background: var(--content-subtle);
     }
 
-    /* Completed hover/active */
+    /* Completed: dark checkmark circle (not blue) */
+    .stepper.v-tabs2 .step.completed .step-circle {
+      background: var(--content-base);
+    }
     .stepper.v-tabs2 .step.completed:hover .step-circle {
-      background: var(--comp-button-solid-primary-fill-hover);
+      background: #3a3a3a;
     }
     .stepper.v-tabs2 .step.completed:active .step-circle {
-      background: var(--comp-button-solid-primary-fill-active);
+      background: var(--content-base);
     }
 
     /* CircleHalf SVG fills its container */
