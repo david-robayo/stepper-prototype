@@ -79,6 +79,11 @@
       box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.07);
     }
 
+    /* ── Stepper wrap — fixed height so switching versions never shifts content ── */
+    .stepper-wrap {
+      min-height: 60px;
+    }
+
     /* ── Stepper ───────────────────────────────────────── */
     .stepper {
       display: flex;
@@ -706,7 +711,9 @@
   <div class="card" id="card">
 
   <!-- Stepper -->
-  <div class="stepper" id="stepper"></div>
+  <div class="stepper-wrap">
+    <div class="stepper" id="stepper"></div>
+  </div>
 
   <!-- Step content -->
   <div class="step-content" id="step-content"></div>
