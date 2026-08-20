@@ -164,6 +164,10 @@
       transition: width 0.35s ease;
     }
 
+    /* ── Hidden step: content invisible, space preserved ── */
+    .step[data-hidden="true"] .step-content  { visibility: hidden; }
+    .step[data-hidden="true"] .step-indicator { visibility: hidden; }
+
     /* ── State: default (Next Step, not visited) ── */
     .step[data-state="default"] .step-label     { color: var(--content-subtle); }
     .step[data-state="default"] .step-indicator { background: var(--border); }
@@ -243,6 +247,8 @@
   <div class="version-toggle">
     <button class="v-btn active" id="v-btn-1" onclick="setVersion(1)">Tab indicators</button>
     <button class="v-btn"        id="v-btn-2" onclick="setVersion(2)">Progress line</button>
+    <div style="flex:1"></div>
+    <button class="v-btn" id="hide-btn" onclick="toggleHideStep(3)">Hide step 4</button>
   </div>
   <div class="stepper" id="stepper"></div>
   <div class="controls">
@@ -303,11 +309,25 @@
   let currentStep = -1;
   let maxReached  = -1;
   let version     = 1;
+  const hiddenSteps = new Set();
 
   function setVersion(v) {
     version = v;
     document.getElementById('v-btn-1').classList.toggle('active', v === 1);
     document.getElementById('v-btn-2').classList.toggle('active', v === 2);
+    render();
+  }
+
+  function toggleHideStep(i) {
+    if (hiddenSteps.has(i)) {
+      hiddenSteps.delete(i);
+    } else {
+      hiddenSteps.add(i);
+      // If currently on or past the now-hidden step, pull back to just before it
+      if (currentStep >= i) currentStep = i - 1;
+    }
+    const btn = document.getElementById('hide-btn');
+    btn.textContent = hiddenSteps.has(i) ? 'Show step 4' : 'Hide step 4';
     render();
   }
 
@@ -334,9 +354,11 @@
         LABELS.map((label, i) => {
           const state     = getState(i);
           const clickable = isClickable(i);
+          const hidden    = hiddenSteps.has(i);
           return `<div class="step"
                data-state="${state}"
                data-clickable="${clickable}"
+               data-hidden="${hidden}"
                onclick="clickStep(${i})">
             <div class="step-content">
               <span class="step-icon">${ICON[state]}</span>
@@ -354,9 +376,11 @@
       el.innerHTML = LABELS.map((label, i) => {
         const state     = getState(i);
         const clickable = isClickable(i);
+        const hidden    = hiddenSteps.has(i);
         return `<div class="step"
              data-state="${state}"
              data-clickable="${clickable}"
+             data-hidden="${hidden}"
              onclick="clickStep(${i})">
           <div class="step-content">
             <span class="step-icon">${ICON[state]}</span>
@@ -376,8 +400,10 @@
     }
 
     /* Buttons */
+    const nextIndex = currentStep + 1;
     document.getElementById('btn-back').disabled = currentStep < 0;
-    document.getElementById('btn-next').disabled = currentStep >= LABELS.length - 1;
+    document.getElementById('btn-next').disabled =
+      nextIndex >= LABELS.length || hiddenSteps.has(nextIndex);
   }
 
   /* Click on a step directly (only works for visited steps) */
@@ -390,7 +416,7 @@
   /* Next: advance one step, extending maxReached if moving into new territory */
   function goNext() {
     const next = currentStep + 1;
-    if (next >= LABELS.length) return;
+    if (next >= LABELS.length || hiddenSteps.has(next)) return;
     currentStep = next;
     if (currentStep > maxReached) maxReached = currentStep;
     render();
