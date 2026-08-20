@@ -309,6 +309,7 @@
   let currentStep = -1;
   let maxReached  = -1;
   let version     = 1;
+  let submitted   = false;
   const hiddenSteps = new Set();
 
   function setVersion(v) {
@@ -331,30 +332,46 @@
     render();
   }
 
+  function submit() {
+    submitted = true;
+    render();
+  }
+
+  function restart() {
+    currentStep = -1;
+    maxReached  = -1;
+    submitted   = false;
+    render();
+  }
+
   function getState(i) {
-    if (i === currentStep)                    return 'active';
-    if (i < currentStep)                      return 'completed';
-    if (i > currentStep && i <= maxReached)   return 'was-completed';
+    if (submitted)                             return 'completed';
+    if (i === currentStep)                     return 'active';
+    if (i < currentStep)                       return 'completed';
+    if (i > currentStep && i <= maxReached)    return 'was-completed';
     return 'default';
   }
 
   function isClickable(i) {
-    return i < currentStep; // only previous steps are navigable
+    if (submitted) return false;
+    return i < currentStep;
   }
 
   function render() {
     const el = document.getElementById('stepper');
 
+    /* Last visible step — shared by V2 fill and controls */
+    let lastVisible = LABELS.length - 1;
+    while (lastVisible >= 0 && hiddenSteps.has(lastVisible)) lastVisible--;
+    const atLastVisible = submitted || (currentStep >= 0 && currentStep === lastVisible);
+
     if (version === 2) {
       /* V2: single growing progress line
          Track is full card-width (breaks out of 32px padding).
          Fill starts at left:32px (steps left edge).
-         When at the last *visible* step, stretch to the right card edge.
+         When at the last visible step (or submitted), stretch to the right card edge.
          Otherwise grow proportionally through the steps area. */
       const ratio = Math.max(0, (currentStep + 1) / LABELS.length);
-      let lastVisible = LABELS.length - 1;
-      while (lastVisible >= 0 && hiddenSteps.has(lastVisible)) lastVisible--;
-      const atLastVisible = currentStep >= 0 && currentStep === lastVisible;
       const fillStyle = ratio === 0
         ? 'left:32px;width:0'
         : atLastVisible
@@ -403,19 +420,41 @@
       }).join('');
     }
 
-    /* State info label */
+    /* State info */
     const infoEl = document.getElementById('state-info');
-    if (currentStep === -1) {
+    if (submitted) {
+      infoEl.textContent = 'Submitted';
+    } else if (currentStep === -1) {
       infoEl.textContent = 'All steps default';
     } else {
       infoEl.textContent = `${LABELS[currentStep]} active`;
     }
 
-    /* Buttons */
-    const nextIndex = currentStep + 1;
-    document.getElementById('btn-back').disabled = currentStep < 0;
-    document.getElementById('btn-next').disabled =
-      nextIndex >= LABELS.length || hiddenSteps.has(nextIndex);
+    /* Controls */
+    const backBtn = document.getElementById('btn-back');
+    const nextBtn = document.getElementById('btn-next');
+    const ARROW_RIGHT = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const CHECK      = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    backBtn.disabled = submitted || currentStep < 0;
+
+    if (submitted) {
+      nextBtn.disabled   = false;
+      nextBtn.className  = 'btn btn-ghost';
+      nextBtn.innerHTML  = 'Restart';
+      nextBtn.onclick    = restart;
+    } else if (atLastVisible) {
+      nextBtn.disabled   = false;
+      nextBtn.className  = 'btn btn-primary';
+      nextBtn.innerHTML  = `Submit ${CHECK}`;
+      nextBtn.onclick    = submit;
+    } else {
+      const nextIndex    = currentStep + 1;
+      nextBtn.disabled   = nextIndex >= LABELS.length || hiddenSteps.has(nextIndex);
+      nextBtn.className  = 'btn btn-primary';
+      nextBtn.innerHTML  = `Next ${ARROW_RIGHT}`;
+      nextBtn.onclick    = goNext;
+    }
   }
 
   /* Click on a step directly (only works for visited steps) */
@@ -427,6 +466,7 @@
 
   /* Next: advance one step, extending maxReached if moving into new territory */
   function goNext() {
+    if (submitted) return;
     const next = currentStep + 1;
     if (next >= LABELS.length || hiddenSteps.has(next)) return;
     currentStep = next;
@@ -436,7 +476,7 @@
 
   /* Back: go one step backwards (or to all-default if at step 0) */
   function goBack() {
-    if (currentStep < 0) return;
+    if (submitted || currentStep < 0) return;
     currentStep -= 1;
     render();
   }
